@@ -1,148 +1,109 @@
-# Deterministic Scoring
+# Audit Status
 
 Status: DRAFT / PHASE 0
 
-## Purpose
-Define a deterministic breakout-scoring engine that works from verified data and leaves all weights and thresholds explicitly PROPOSED until validation is completed.
+## Baseline summary
+- Repository: x-factor-app/x-factor-os
+- Default branch: main
+- Baseline commit on main (verified): 99fe4d1cc0889ac8b16a10d65cbbee78ec171b95
+- Assessment commit under review: 82ffbed2210213f370ebb03c750c54296f32fcc8
+- Assessment branch: phase-0/baseline-and-blueprint
+- Repository state at assessment: README-only skeleton on main; no application code, manifests, workflows, tests, migrations, or deployment configuration found.
+- Exact recursive tree at 82ffbed: 26 file paths total. Of those, 25 are added by the Phase 0 documentation commit and 1 is the baseline README already present on main.
 
-## Scope
-This scoring layer covers:
-- price momentum and breakout behavior
-- relative strength vs peers and index context
-- volatility and structure checks
-- catalyst salience and evidence weighting
-- trend confirmation and risk filters
-- candidate generation thresholds
+## Actual tree inventory at commit 82ffbed
 
-## Inputs
-- normalized OHLCV
-- quality gate decisions
-- cross-market context
-- evidence DNA references
-- candidate configuration
-- scoring version metadata
+### Phase 0 documentation files added by this commit
+- .specs/001-system-boundaries.md
+- .specs/002-provider-contracts.md
+- .specs/003-normalized-ohlcv.md
+- .specs/004-data-quality-gates.md
+- .specs/005-deterministic-scoring.md
+- .specs/006-evidence-dna.md
+- .specs/007-candidate-ledger.md
+- .specs/008-alert-lifecycle.md
+- .specs/009-prospective-outcomes.md
+- .specs/010-performance-review.md
+- .specs/011-security-and-governance.md
+- .tasks/README.md
+- .tasks/T001-repository-baseline.md
+- .tasks/T002-provider-contracts.md
+- .tasks/T003-market-data-pipeline.md
+- .tasks/T004-quality-gates.md
+- .tasks/T005-scoring-engine.md
+- .tasks/T006-evidence-and-ledger.md
+- .tasks/T007-alert-delivery.md
+- .tasks/T008-mfe-mae-tracking.md
+- .tasks/T009-performance-review.md
+- .tasks/T010-ci-and-release-gates.md
+- acceptance-criteria.md
+- validation-plan.md
+- audit-status.md
 
-## Outputs
-- candidate score record
-- feature values and weights
-- pass/fail threshold decision
-- scoring metadata and fixture snapshots
+### Baseline file present before the Phase 0 commit
+- README.md
 
-## Dependencies
-- normalized OHLCV
-- data-quality gates
-- evidence DNA
-- candidate ledger
+### Verified file absence
+- ADR-001-initial-stack-architecture.md: MISSING from the exact recursive tree at commit 82ffbed2210213f370ebb03c750c54296f32fcc8.
 
-## Data Contracts
-Each scoring pass must record:
-- symbol
-- timeframe
-- scoring_version
-- feature_version
-- feature_values
-- formula_version
-- weights
-- threshold
-- score
-- pass_or_fail
-- missing_feature_policy
-- run_id
-- created_at
-- source_bar_window
+## Reconciliation of the 26-vs-27 contradiction
+- The actual recursive tree contains 26 file paths, not 27.
+- The contradiction was caused by counting the baseline README as if it were added by the Phase 0 commit.
+- Correct accounting:
+  - total files at 82ffbed: 26
+  - Phase 0 new/added documentation files: 25
+  - baseline README already on main: 1
 
-### Proposed Feature Set
-The following features are PROPOSED and unvalidated until backtesting/verification is completed.
+## Branch head verification
+- phase-0/baseline-and-blueprint head: 82ffbed2210213f370ebb03c750c54296f32fcc8
+- main head: 99fe4d1cc0889ac8b16a10d65cbbee78ec171b95
+- main remains unchanged by the Phase 0 documentation branch as verified by tree inspection and branch metadata. No merge or commit was made to main.
 
-1. Breakout strength
-   - Formula: normalized momentum from recent price vs reference range
-   - Weight: PROPOSED 18%
-   - Missing-data behavior: fail feature, do not default to zero unless explicitly approved by policy
-   - Threshold: PROPOSED 0.70
+## Checks actually run
+- Repository metadata check: VERIFIED
+- Recursive tree inspection at commit 82ffbed: VERIFIED
+- Branch head verification for phase-0/baseline-and-blueprint: VERIFIED
+- Branch head verification for main: VERIFIED
+- Baseline README inventory on main: VERIFIED
+- File existence check for ADR-001-initial-stack-architecture.md: MISSING
+- Reconciliation of audit-status.md inventory to exact tree: VERIFIED
+- Application code execution, provider connection, secret creation, migration creation, deployment, or merge to main: not performed
 
-2. Relative strength
-   - Formula: symbol return minus market or sector return over the evaluation window
-   - Weight: PROPOSED 15%
-   - Missing-data behavior: require peer market context or mark feature missing
-   - Threshold: PROPOSED 0.60
+## Findings status
 
-3. Volume confirmation
-   - Formula: volume ratio relative to rolling average with price participation filter
-   - Weight: PROPOSED 14%
-   - Missing-data behavior: mark missing if volume is absent or untrusted
-   - Threshold: PROPOSED 0.65
+| Finding | Status | Evidence location |
+|---|---|---|
+| Commit 82ffbed exists | VERIFIED | Repository commit metadata for 82ffbed2210213f370ebb03c750c54296f32fcc8 |
+| phase-0/baseline-and-blueprint head is 82ffbed | VERIFIED | Branch metadata for phase-0/baseline-and-blueprint |
+| main head is 99fe4d1 | VERIFIED | Branch metadata for main |
+| main is unchanged by Phase 0 work | VERIFIED | main contains only README.md; Phase 0 files exist only on assessment branch |
+| Actual tree contains 26 file paths | VERIFIED | Recursive repository tree at 82ffbed |
+| ADR-001-initial-stack-architecture.md exists | MISSING | Exact recursive tree at 82ffbed; no path match |
+| audit-status inventory is internally consistent after correction | VERIFIED | Exact tree count reconciles to 26 total, with 25 Phase 0 additions + 1 baseline README |
+| Python/FastAPI architecture option is approved | UNVERIFIED | No implementation or approved architecture decision exists |
+| TypeScript/Node architecture option is approved | UNVERIFIED | No implementation or approved architecture decision exists |
+| Hybrid architecture option is approved | UNVERIFIED | No implementation or approved architecture decision exists |
+| Supabase PostgreSQL is approved | UNVERIFIED | Provider/database selection remains a governance decision |
+| Self-hosted PostgreSQL is approved | UNVERIFIED | Provider/database selection remains a governance decision |
+| Deterministic scoring weights and thresholds are validated | UNVERIFIED | File .specs/005-deterministic-scoring.md explicitly states PROPOSED and unvalidated |
+| Validation plan includes explicit pass/fail criteria | VERIFIED (proposed only) | File validation-plan.md contains proposed criteria with PROPOSED tolerances and sample sizes |
 
-4. Trend structure quality
-   - Formula: slope consistency across short-, medium-, and long-term windows
-   - Weight: PROPOSED 13%
-   - Missing-data behavior: fail feature if insufficient bars
-   - Threshold: PROPOSED 0.55
+## Outstanding decisions required before Phase 1 authorization
+- Select an architecture option from the unapproved set: Python/FastAPI, TypeScript/Node, or hybrid.
+- Select a data platform option: managed Supabase PostgreSQL or self-hosted PostgreSQL.
+- Confirm provider access status for Massive, Bigdata.com, and any options vendors; do not assume coverage or entitlement without verification.
+- Approve the deterministic scoring feature formulas, benchmark selection, lookback windows, and final candidate threshold.
+- Approve the missing-data policy for neutral contributions, verified-absence evidence, and score-blocking conditions.
+- Approve proposed numeric tolerances and sample sizes in the validation plan before any test evidence is treated as success evidence.
+- Confirm whether Phase 1 includes deployment infrastructure or remains staging-only and documentation-limited.
 
-5. Catalyst salience
-   - Formula: weighted event priority and evidence score across event classes
-   - Weight: PROPOSED 12%
-   - Missing-data behavior: absent catalysts count as neutral only if documented
-   - Threshold: PROPOSED 0.50
+## Conditions required before Phase 1 implementation can be authorized
+- The architecture decision must be documented, reviewed, and explicitly approved by a human reviewer.
+- The runtime stack and database platform must both be approved as separate decisions.
+- All provider access and entitlements must be verified before production or integration work is attempted.
+- The feature formulas, benchmark selection, neutral contribution policy, and final candidate threshold must be explicitly defined and approved.
+- The validation plan must be approved with explicit pass/fail thresholds and PROPOSED sample sizes or tolerances labeled as such until acceptance.
+- No production code, migrations, secrets, provider connections, or deployment actions may be initiated before these conditions are met.
 
-6. Risk posture and volatility regime
-   - Formula: volatility-adjusted risk filter and position sizing context
-   - Weight: PROPOSED 10%
-   - Missing-data behavior: if volatility is missing, reject candidate generation
-   - Threshold: PROPOSED 0.40
-
-7. Cross-market context
-   - Formula: sector/industry/market breadth alignment
-   - Weight: PROPOSED 10%
-   - Missing-data behavior: absent context counts as neutral, not bullish
-   - Threshold: PROPOSED 0.45
-
-8. Fundamental and positioning evidence
-   - Formula: weighted evidence class score with provenance requirement
-   - Weight: PROPOSED 8%
-   - Missing-data behavior: missing evidence does not create a positive score
-   - Threshold: PROPOSED 0.35
-
-## Formula and Weighting Notes
-- Weights are PROPOSED only and must not be described as validated predictive parameters.
-- The system must preserve both the raw feature vector and the scoring version used to compute it.
-- The score must remain deterministic with fixed inputs and fixed version metadata.
-
-## Failure Behavior
-- candidate generation blocked when required features are missing
-- null or malformed values are not silently converted to zero unless policy explicitly says so
-- conflicting sources on the same feature must be quarantined for manual review
-- invalid score or threshold may not produce a candidate
-
-## Security Considerations
-- scoring must not access live brokerage accounts or execution systems
-- scoring logic must be pure and deterministic from approved inputs
-- score snapshots must be immutable and reproducible from fixtures
-
-## Deterministic Test Fixture
-A deterministic fixture must include:
-- fixed sample bars for at least one valid breakout case
-- a missing-data case
-- a noisy-market case
-- a provider outage case
-- a duplicate bar case
-- a case where a high score is not produced because one required feature is missing
-
-## Test Cases
-- same input produces same score and ledger record
-- candidate is rejected when required feature fields are absent
-- missing-data handling is explicit and repeatable
-- versioned weights and formulas are reproducible from fixture metadata
-
-## Acceptance Criteria
-- each feature has a formula, weight, missing-data rule, threshold, and version
-- weights are labeled explicitly PROPOSED
-- no predictive accuracy claim is made in Phase 0
-- all score outputs are reproducible from deterministic fixtures
-
-## Unresolved Questions
-- final feature list after backtesting and provider coverage review
-- threshold tuning requirements across markets and timeframes
-- whether to include derivative/option signals as a separate feature class
-
-## Implementation Status
-PLANNED. Scoring specification is deterministic and versioned, but all weights and thresholds remain PROPOSED pending validation.
+## Approval status
+Phase 0 review findings are documented with evidence and status labels. The work remains documentation-only and non-production. Implementation beyond documentation requires explicit human approval.

@@ -1,63 +1,117 @@
-# Audit Status
+# Validation Plan
 
 Status: DRAFT / PHASE 0
 
-## Baseline summary
-- Repository: x-factor-app/x-factor-os
-- Default branch: main
-- Assessment commit SHA: 99fe4d1cc0889ac8b16a10d65cbbee78ec171b95
-- Assessment branch: phase-0/baseline-and-blueprint
-- Repository state at assessment: README-only skeleton; no application code, manifests, workflows, tests, migrations, or deployment configuration found.
+## Purpose
+Define the validation plan required before production implementation or a controlled release.
 
-## Files created or changed
-This Phase 0 work creates documentation artifacts only and does not modify existing production files.
+## Validation Categories
 
-Created files:
-- .specs/001-system-boundaries.md
-- .specs/002-provider-contracts.md
-- .specs/003-normalized-ohlcv.md
-- .specs/004-data-quality-gates.md
-- .specs/005-deterministic-scoring.md
-- .specs/006-evidence-dna.md
-- .specs/007-candidate-ledger.md
-- .specs/008-alert-lifecycle.md
-- .specs/009-prospective-outcomes.md
-- .specs/010-performance-review.md
-- .specs/011-security-and-governance.md
-- .tasks/README.md
-- .tasks/T001-repository-baseline.md
-- .tasks/T002-provider-contracts.md
-- .tasks/T003-market-data-pipeline.md
-- .tasks/T004-quality-gates.md
-- .tasks/T005-scoring-engine.md
-- .tasks/T006-evidence-and-ledger.md
-- .tasks/T007-alert-delivery.md
-- .tasks/T008-mfe-mae-tracking.md
-- .tasks/T009-performance-review.md
-- .tasks/T010-ci-and-release-gates.md
-- acceptance-criteria.md
-- validation-plan.md
-- audit-status.md
+### 1. Unit tests
+- provider adapter validation
+- normalized OHLCV transforms
+- score feature calculations
+- evidence DNA provenance checks
+- ledger lifecycle transitions
 
-## Checks actually run
-- Repository metadata check: completed
-- Default branch and commit verification: completed
-- Root tree inspection: completed
-- README review: completed
-- Workflow inventory check: not applicable because no workflow files are present
-- Test execution: not run; repository contains no application or test infrastructure
+### 2. Integration tests
+- provider payload to normalized bar pipeline
+- quality gate to candidate generation handoff
+- ledger to alert lifecycle integration
+- outcome accounting to review summary integration
 
-## Results
-- Baseline captured successfully.
-- Repository is not yet an implemented system.
-- No production code or deployment work was initiated.
-- All requested Phase 0 artifacts were created on a dedicated non-production branch.
+### 3. Database tests
+- migration order and schema integrity
+- append-only ledger behavior
+- retention and archive policy checks
+- idempotent record writes
 
-## Remaining blockers
-- Confirm final implementation stack (Node/TypeScript vs Python/FastAPI vs hybrid)
-- Confirm provider shortlist and access status
-- Confirm whether platform hosting and deployment are in scope for Phase 1 or deferred
-- Confirm release governance process before any implementation beyond documentation begins
+### 4. Deterministic replay tests
+- fixed bar fixtures must produce identical outputs across runs
+- scoring results must be reproducible from a record of inputs
+- evidence references must remain stable and comparable
 
-## Approval status
-Phase 0 documentation work is complete. Any code implementation, provider connection, or production deployment requires explicit human approval and a separate implementation scope review.
+### 5. Failure injection tests
+- closed provider endpoint
+- malformed provider payload
+- corrupted schema version
+- delayed or duplicate first bars
+- ambiguous corporate action metadata
+
+### 6. Point-in-time leakage tests
+- ensure no future data is used to score historical windows
+- prevent look-ahead bias in scoring and outcomes
+- validate evaluation windows are anchored to the correct timestamps
+
+### 7. Duplicate and out-of-order bar tests
+- duplicate bars are rejected or deduplicated by policy
+- out-of-order bars are quarantined and not silently used
+- time-order integrity is preserved per symbol and timeframe
+
+### 8. Provider outage tests
+- provider timeouts, partial responses, and retries
+- missing coverage windows are marked MISSING instead of assumed valid
+- downstream scoring must halt predictably on outage conditions
+
+### 9. Corporate action tests
+- split, dividend, and symbol event boundaries are validated
+- adjusted and unadjusted conventions are preserved
+- series continuity is re-established only with documented policy
+
+### 10. Alert retry tests
+- duplicate delivery attempts do not create additional ledger events
+- retries are logged and tracked with idempotency keys
+- failed or expired alerts remain visible for review
+
+### 11. Outcome-accounting tests
+- unresolved candidates remain OPEN or NOT_YET_MATURE
+- ambiguous exits are documented conservatively
+- prospective MFE/MAE accounting is versioned and not treated as live performance evidence
+
+## Proposed pass/fail criteria (PROPOSED until approved)
+
+### Deterministic replay
+- A fixed fixture is PASS only if the same input set produces the same score, version metadata, and ledger record for repeated runs.
+- Proposed tolerance: numeric equality within PROPOSED ±0.000001 on intermediate or final score values, unless a different policy is approved.
+- Proposed sample size: PROPOSED minimum 3 valid replay cases plus 1 missing-data case and 1 outage case before a replay suite is considered stable.
+- FAIL if the score changes without a corresponding version change, or if the ledger record changes without a documented reason.
+
+### Point-in-time leakage
+- PASS only if all scoring inputs are anchored to timestamps that do not include future bars beyond the evaluation cutoff.
+- Proposed rule: a candidate must never use data later than the evaluation cut-off by more than PROPOSED 1 bar tick or PROPOSED 1 minute, whichever is appropriate for the time frame, unless approved otherwise.
+- FAIL if future bars are reachable from a feature window or if outcome accounting uses data after the defined exit horizon without explicit justification.
+
+### Missing or corrupt data
+- PASS only if missing required fields trigger explicit quarantine or rejection, not silent defaulting.
+- Proposed rule: if any required feature field is missing, the candidate is rejected or blocked; no silent zero-fill is allowed unless explicitly approved.
+- FAIL if a required field is replaced with a placeholder, zero, or neutral value without an explicit policy and approval.
+
+### Duplicate and out-of-order bars
+- PASS only if duplicate bars are either deduplicated under a documented rule or quarantined and rejected.
+- Proposed rule: duplicate bar detection must compare symbol, timeframe, and source_timestamp; mismatches trigger quarantine and manual review.
+- FAIL if an out-of-order bar is silently re-ordered without source_timestamp and sequence metadata preserving the original state.
+
+### Provider outage handling
+- PASS only if outages lead to MISSING coverage and deterministic failure of downstream candidate generation rather than silent success.
+- Proposed rule: a provider failure must mark coverage as MISSING and halt dependent features unless an approved fallback is present.
+- FAIL if the pipeline reports valid data from an outage window without an explicit provider status record.
+
+### Prospective MFE/MAE accounting
+- PASS only if candidate outcomes remain OPEN or NOT_YET_MATURE until the evaluation window has matured.
+- Proposed rule: MFE/MAE may only be computed on observations with explicit exit or invalidation metadata; otherwise the outcome remains OPEN or NOT_YET_MATURE.
+- Proposed sample size: PROPOSED minimum 30 mature observations before a review summary is considered statistically meaningful; smaller sample sizes require HOLD or NO-RELEASE wording.
+- FAIL if unresolved or incomplete observations are reported as success or failure rates.
+
+## Proposed acceptance requirements
+- every validation category above must have an explicit test strategy
+- the system must distinguish implemented behavior from tested behavior
+- every failure mode must have a reproducible test case or manual review path
+- no production claim is permitted without passing evidence and review
+- all numeric tolerances, sample sizes, and cutoff windows are PROPOSED unless explicitly approved in writing
+- no test is allowed to be described as "passed" without a defined result rule and review evidence
+
+## Implementation Status
+PLANNED. This validation plan must be executed before any production or broad release work begins. All numeric tolerances, cutoff windows, and sample sizes remain PROPOSED pending approval.
+
+### Explicit approval requirement
+No test evidence should be treated as successful validation until pass/fail thresholds, tolerances, and sample-size rules have been approved by a human reviewer.
